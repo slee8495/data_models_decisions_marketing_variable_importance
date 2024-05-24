@@ -1,0 +1,12 @@
+name: data_models_decisions_marketing_variable_importance
+title: data_models_decisions_marketing_variable_importance
+username: venturafoods
+account: venturafoods
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12062578
+bundleId: 8654899
+url: https://venturafoods.shinyapps.io/data_models_decisions_marketing_variable_importance/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
