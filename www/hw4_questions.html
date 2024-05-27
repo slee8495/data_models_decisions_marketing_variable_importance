@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.4.506">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -45,11 +79,1026 @@ ul.task-list li input[type="checkbox"] {
 
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sangho Lee </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 28, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
 
 
 <p>This post implements a few measure of variable importance, interpreted as a key drivers analysis, for certain aspects of a payment card on customer satisfaction with that payment card.</p>
-<p><em>todo: replicate the table on slide 19 of the session 4 slides. This involves calculating pearson correlations, standardized regression coefficients, “usefulness”, Shapley values for a linear regression, Johnson’s relative weights, and the mean decrease in the gini coefficient from a random forest. You may use packages built into R or Python.</em></p>
+<section id="data" class="level1">
+<h1>Data</h1>
+<section id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis." class="level3">
+<h3 class="anchored" data-anchor-id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis.">I will start by calling the necessary packages in both R and Python to facilitate data handling and analysis.</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyrsm <span class="im">as</span> rsm</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"data_for_drivers_analysis.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(relaimpo)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(psych)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stats)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data_for_drivers_analysis.csv"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 4%">
+<col style="width: 14%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 8%">
+<col style="width: 5%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">brand</th>
+<th style="text-align: right;">id</th>
+<th style="text-align: right;">satisfaction</th>
+<th style="text-align: right;">trust</th>
+<th style="text-align: right;">build</th>
+<th style="text-align: right;">differs</th>
+<th style="text-align: right;">easy</th>
+<th style="text-align: right;">appealing</th>
+<th style="text-align: right;">rewarding</th>
+<th style="text-align: right;">popular</th>
+<th style="text-align: right;">service</th>
+<th style="text-align: right;">impact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">179</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">197</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">317</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">356</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">395</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">586</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">596</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">978</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">987</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="data-explanation" class="level3">
+<h3 class="anchored" data-anchor-id="data-explanation">Data Explanation</h3>
+<ul>
+<li>brand: Indicates the brand of the payment card. Coded numerically.</li>
+<li>id: A unique identifier for each record in the dataset.</li>
+<li>satisfaction: The overall customer satisfaction with the payment card, typically on a scale (e.g., 1 to 5).</li>
+<li>trust: Measures the level of trust the customer has in the payment card, likely on a binary scale (0 = no trust, 1 = trust).</li>
+<li>build: Indicates the perception of the card’s build quality. Coded as binary (0 = low, 1 = high).</li>
+<li>differs: Reflects whether the payment card is perceived as different from others. Coded as binary (0 = no, 1 = yes).</li>
+<li>easy: Assesses how easy it is to use the payment card. Coded as binary (0 = not easy, 1 = easy).</li>
+<li>appealing: Indicates whether the card is visually or otherwise appealing. Coded as binary (0 = no, 1 = yes).</li>
+<li>rewarding: Measures whether the card’s rewards program is satisfactory. Coded as binary (0 = no, 1 = yes).</li>
+<li>popular: Indicates if the card is popular or widely accepted. Coded as binary (0 = no, 1 = yes).</li>
+<li>service: Reflects the quality of customer service associated with the card. Coded as binary (0 = poor, 1 = good).</li>
+<li>impact: Measures the perceived impact or influence of the card. Coded as binary (0 = low, 1 = high).</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Correlation plot</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sns.heatmap(df.corr(), annot<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span><span class="st">'coolwarm'</span>, fmt<span class="op">=</span><span class="st">'.2f'</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Correlation Matrix'</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="hw4_questions_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="satisfaction-correlations" class="level4">
+<h4 class="anchored" data-anchor-id="satisfaction-correlations">Satisfaction Correlations:</h4>
+<ul>
+<li>Trust: The correlation between satisfaction and trust is 0.26. This indicates a moderate positive relationship, suggesting that higher trust in the payment card is associated with higher customer satisfaction.</li>
+<li>Build: The correlation between satisfaction and build is 0.19. This suggests a weak positive relationship, indicating that customers who perceive the card as well-built tend to have higher satisfaction.</li>
+<li>Differs: The correlation between satisfaction and differs is 0.18. This also indicates a weak positive relationship, meaning that customers who find the card different from others tend to be more satisfied.</li>
+<li>Easy: The correlation between satisfaction and easy is 0.21, showing a weak positive relationship. Customers who find the card easy to use are generally more satisfied.</li>
+<li>Appealing: The correlation between satisfaction and appealing is 0.21, which is a weak positive relationship. This suggests that customers who find the card appealing tend to be more satisfied.</li>
+<li>Rewarding: The correlation between satisfaction and rewarding is 0.19, indicating a weak positive relationship. Customers who find the card rewarding are slightly more satisfied.</li>
+<li>Popular: The correlation between satisfaction and popular is 0.17, showing a weak positive relationship, suggesting that more popular cards slightly correlate with higher satisfaction.</li>
+<li>Service: The correlation between satisfaction and service is 0.25, indicating a moderate positive relationship. Good service is an important factor in customer satisfaction.</li>
+<li>Impact: The correlation between satisfaction and impact is 0.25, also indicating a moderate positive relationship. This suggests that the perceived impact of the card on the user’s life correlates with their satisfaction.</li>
+</ul>
+</section>
+<section id="inter-correlations-between-predictors" class="level4">
+<h4 class="anchored" data-anchor-id="inter-correlations-between-predictors">Inter-correlations Between Predictors:</h4>
+<ul>
+<li>Trust and Service: A high correlation (0.50) between trust and service suggests that these two variables are closely related. Customers who trust the card likely also perceive better service.</li>
+<li>Easy and Appealing: The correlation between easy and appealing is 0.43, indicating that cards which are easy to use are often also considered appealing.</li>
+<li>Rewarding and Appealing: There is a strong correlation (0.48) between rewarding and appealing, suggesting that if a card is rewarding, it is also perceived as appealing.</li>
+</ul>
+</section>
+<section id="key-takeaways" class="level4">
+<h4 class="anchored" data-anchor-id="key-takeaways">Key Takeaways</h4>
+<ul>
+<li>Moderate Correlations with Satisfaction: Trust, service, and impact have the highest correlations with satisfaction, indicating these are key drivers.</li>
+<li>Weak but Positive Correlations: Build, differs, easy, appealing, rewarding, and popular also influence satisfaction but to a lesser extent.</li>
+<li>Inter-related Predictors: Several predictors are strongly inter-related, which could suggest multicollinearity. This might need to be addressed in modeling efforts.</li>
+</ul>
+<p><br></p>
+<section id="i-will-create-a-statistical-summary-table-this-involves-calculating-pearson-correlations-standardized-regression-coefficients-and-assessing-usefulness-metrics-such-as-shapley-values-for-a-linear-regression-johnsons-relative-weights-and-the-mean-decrease-in-the-gini-coefficient-from-a-random-forest-analysis." class="level5">
+<h5 class="anchored" data-anchor-id="i-will-create-a-statistical-summary-table-this-involves-calculating-pearson-correlations-standardized-regression-coefficients-and-assessing-usefulness-metrics-such-as-shapley-values-for-a-linear-regression-johnsons-relative-weights-and-the-mean-decrease-in-the-gini-coefficient-from-a-random-forest-analysis.">I will create a statistical summary table, this involves calculating Pearson correlations, standardized regression coefficients, and assessing “usefulness” metrics such as Shapley values for a linear regression, Johnson’s relative weights, and the mean decrease in the Gini coefficient from a Random Forest analysis.</h5>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>column_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"brand"</span>, <span class="st">"build"</span>, <span class="st">"differs"</span>, <span class="st">"easy"</span>, <span class="st">"appealing"</span>, <span class="st">"rewarding"</span>, <span class="st">"popular"</span>, <span class="st">"service"</span>, <span class="st">"impact"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pearson Correlations</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pearson_corr <span class="ot">&lt;-</span> <span class="fu">cor</span>(df)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="ot">&lt;-</span> pearson_corr[, <span class="st">"satisfaction"</span>]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="ot">&lt;-</span> pearson_corr_satisfaction[<span class="fu">names</span>(pearson_corr_satisfaction) <span class="sc">!=</span> <span class="st">"satisfaction"</span>]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="ot">&lt;-</span> pearson_corr_satisfaction[column_order]</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="sc">%&gt;%</span> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">brand</td>
+<td style="text-align: right;">-0.0492960</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">build</td>
+<td style="text-align: right;">0.1918957</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">differs</td>
+<td style="text-align: right;">0.1848009</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">easy</td>
+<td style="text-align: right;">0.2129847</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">appealing</td>
+<td style="text-align: right;">0.2079965</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: right;">0.1945615</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">popular</td>
+<td style="text-align: right;">0.1714253</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">service</td>
+<td style="text-align: right;">0.2510982</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">impact</td>
+<td style="text-align: right;">0.2545386</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized Multiple Regression Coefficients</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[<span class="sc">-</span><span class="dv">1</span>, <span class="st">"Estimate"</span>] <span class="sc">/</span> <span class="fu">sd</span>(df<span class="sc">$</span>satisfaction)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> standardized_coeffs[column_order]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>standardized_coeffs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      brand       build     differs        easy   appealing   rewarding 
+0.003667991 0.038617355 0.060142243 0.045339619 0.070477451 0.012160048 
+    popular     service      impact 
+0.034814144 0.175916178 0.274838929 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Relative Importance (Johnson's Relative Weights)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>rel_weights <span class="ot">&lt;-</span> <span class="fu">calc.relimp</span>(model, <span class="at">type =</span> <span class="st">"lmg"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> rel_weights<span class="sc">$</span>lmg</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> rel_weights_co[column_order]</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>rel_weights_co</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      brand       build     differs        easy   appealing   rewarding 
+0.000342336 0.007163072 0.007269522 0.009260610 0.009136379 0.006820223 
+    popular     service      impact 
+0.005621660 0.018348956 0.023622808 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert satisfaction to a factor for classification</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>satisfaction <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df<span class="sc">$</span>satisfaction)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Random Forest for Mean Decrease in Gini</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">randomForest</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>importance_values <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">importance</span>(rf_model, <span class="at">type =</span> <span class="dv">1</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>importance_values_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"brand"</span>, <span class="st">"id"</span>, <span class="st">"trust"</span>, <span class="st">"build"</span>, <span class="st">"differs"</span>, <span class="st">"easy"</span>, <span class="st">"appealing"</span>, <span class="st">"rewarding"</span>, <span class="st">"popular"</span>, <span class="st">"service"</span>, <span class="st">"impact"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>importance_values <span class="ot">&lt;-</span> importance_values <span class="sc">%&gt;%</span> <span class="fu">as.vector</span>()</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the data frame to a named numeric vector</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>importance_values_co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(importance_values_cols, importance_values)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>as_named_num <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setNames</span>(df<span class="sc">$</span>importance_values, df<span class="sc">$</span>importance_values_cols)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> <span class="fu">as_named_num</span>(importance_values_co)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> importance_values_named[column_order]</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>importance_values_named</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    brand     build   differs      easy appealing rewarding   popular   service 
+-2.823551 20.878250 15.718782 18.805249 12.377324 15.472671 17.462664 21.852306 
+   impact 
+18.575924 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Shapley Values using LMG method</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>shapley_values <span class="ot">&lt;-</span> <span class="fu">calc.relimp</span>(model, <span class="at">type =</span> <span class="st">"lmg"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>shapley_values_co <span class="ot">&lt;-</span> shapley_values<span class="sc">$</span>lmg</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>shapley_values_co <span class="ot">&lt;-</span> shapley_values_co[column_order]</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>shapley_values_co</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      brand       build     differs        easy   appealing   rewarding 
+0.000342336 0.007163072 0.007269522 0.009260610 0.009136379 0.006820223 
+    popular     service      impact 
+0.005621660 0.018348956 0.023622808 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Perception =</span> <span class="fu">c</span>(<span class="st">"Is offered by a brand I trust"</span>, <span class="st">"Helps build credit quickly"</span>, <span class="st">"Is different from other cards"</span>, </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is easy to use"</span>, <span class="st">"Has appealing benefits or rewards"</span>, <span class="st">"Rewards me for responsible usage"</span>, </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is used by a lot of people"</span>, <span class="st">"Provides outstanding customer service"</span>, <span class="st">"Makes a difference in my life"</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pearson_Correlations =</span> pearson_corr_satisfaction,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Standardized_Multiple_Regression_Coefficients =</span> standardized_coeffs,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Shapley_Values =</span> shapley_values_co,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Johnsons_Relative_Weights =</span> rel_weights_co,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> importance_values_named</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Round and convert numerical columns to percentage strings</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results <span class="sc">%&gt;%</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">round</span>(. <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">paste0</span>(., <span class="st">"%"</span>)))</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>gt_table <span class="ot">&lt;-</span> <span class="fu">gt</span>(results) <span class="sc">%&gt;%</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"Perception Analysis"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Perception =</span> <span class="st">"Perception"</span>,</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pearson_Correlations =</span> <span class="fu">md</span>(<span class="st">"Pearson&lt;br&gt;Correlations"</span>),</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Standardized_Multiple_Regression_Coefficients =</span> <span class="fu">md</span>(<span class="st">"Standardized&lt;br&gt;Multiple Regression&lt;br&gt;Coefficients"</span>),</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">Shapley_Values =</span> <span class="fu">md</span>(<span class="st">"Shapley&lt;br&gt;Values"</span>),</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">Johnsons_Relative_Weights =</span> <span class="fu">md</span>(<span class="st">"Johnsons&lt;br&gt;Relative Weights"</span>),</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> <span class="fu">md</span>(<span class="st">"Mean Decrease in&lt;br&gt;RF Gini Coefficient"</span>)</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">table.font.size =</span> <span class="st">'small'</span>,</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_row.padding =</span> <span class="fu">px</span>(<span class="dv">3</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>gt_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="mhgfldhrdg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#mhgfldhrdg table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#mhgfldhrdg thead, #mhgfldhrdg tbody, #mhgfldhrdg tfoot, #mhgfldhrdg tr, #mhgfldhrdg td, #mhgfldhrdg th {
+  border-style: none;
+}
+
+#mhgfldhrdg p {
+  margin: 0;
+  padding: 0;
+}
+
+#mhgfldhrdg .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: small;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#mhgfldhrdg .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#mhgfldhrdg .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#mhgfldhrdg .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#mhgfldhrdg .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#mhgfldhrdg .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#mhgfldhrdg .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#mhgfldhrdg .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#mhgfldhrdg .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#mhgfldhrdg .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#mhgfldhrdg .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#mhgfldhrdg .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#mhgfldhrdg .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#mhgfldhrdg .gt_row {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#mhgfldhrdg .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mhgfldhrdg .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#mhgfldhrdg .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#mhgfldhrdg .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#mhgfldhrdg .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mhgfldhrdg .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#mhgfldhrdg .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mhgfldhrdg .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#mhgfldhrdg .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mhgfldhrdg .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mhgfldhrdg .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mhgfldhrdg .gt_left {
+  text-align: left;
+}
+
+#mhgfldhrdg .gt_center {
+  text-align: center;
+}
+
+#mhgfldhrdg .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#mhgfldhrdg .gt_font_normal {
+  font-weight: normal;
+}
+
+#mhgfldhrdg .gt_font_bold {
+  font-weight: bold;
+}
+
+#mhgfldhrdg .gt_font_italic {
+  font-style: italic;
+}
+
+#mhgfldhrdg .gt_super {
+  font-size: 65%;
+}
+
+#mhgfldhrdg .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#mhgfldhrdg .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#mhgfldhrdg .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#mhgfldhrdg .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#mhgfldhrdg .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#mhgfldhrdg .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#mhgfldhrdg .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+
+<table class="gt_table table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header gt_heading">
+<th colspan="6" class="gt_heading gt_title gt_font_normal gt_bottom_border">Perception Analysis</th>
+</tr>
+<tr class="odd gt_col_headings">
+<th id="Perception" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Perception</th>
+<th id="Pearson<br>Correlations" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Pearson<br>
+Correlations</th>
+<th id="Standardized<br>Multiple Regression<br>Coefficients" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Standardized<br>
+Multiple Regression<br>
+Coefficients</th>
+<th id="Shapley<br>Values" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Shapley<br>
+Values</th>
+<th id="Johnsons<br>Relative Weights" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Johnsons<br>
+Relative Weights</th>
+<th id="Mean Decrease in<br>RF Gini Coefficient" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean Decrease in<br>
+RF Gini Coefficient</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Perception">Is offered by a brand I trust</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">-4.9%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">0.4%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">-282.4%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Perception">Helps build credit quickly</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">19.2%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">3.9%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">2087.8%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Perception">Is different from other cards</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">18.5%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">6%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1571.9%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Perception">Is easy to use</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">21.3%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">4.5%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.9%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.9%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1880.5%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Perception">Has appealing benefits or rewards</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">20.8%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">7%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.9%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.9%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1237.7%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Perception">Rewards me for responsible usage</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">19.5%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">1.2%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1547.3%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Perception">Is used by a lot of people</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">17.1%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">3.5%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">0.6%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.6%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1746.3%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Perception">Provides outstanding customer service</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">25.1%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">17.6%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">1.8%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">1.8%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">2185.2%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Perception">Makes a difference in my life</td>
+<td class="gt_row gt_right" headers="Pearson_Correlations">25.5%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">27.5%</td>
+<td class="gt_row gt_right" headers="Shapley_Values">2.4%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">2.4%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1857.6%</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
 <p><em>If you want a challenge, either (1) implement one or more of the measures yourself. “Usefulness” is rather easy to program up. Shapley values for linear regression are a bit more work. Or (2) add additional measures to the table such as the importance scores from XGBoost.</em></p>
+</section>
+</section>
+</section>
+</section>
 
 </main>
 <!-- /main column -->
@@ -132,10 +1181,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -145,8 +1193,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -159,6 +1216,135 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    const typesetMath = (el) => {
+      if (window.MathJax) {
+        // MathJax Typeset
+        window.MathJax.typeset([el]);
+      } else if (window.katex) {
+        // KaTeX Render
+        var mathElements = el.getElementsByClassName("math");
+        var macros = [];
+        for (var i = 0; i < mathElements.length; i++) {
+          var texText = mathElements[i].firstChild;
+          if (mathElements[i].tagName == "SPAN") {
+            window.katex.render(texText.data, mathElements[i], {
+              displayMode: mathElements[i].classList.contains('display'),
+              throwOnError: false,
+              macros: macros,
+              fleqn: false
+            });
+          }
+        }
+      }
+    }
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        typesetMath(container);
+        return container.innerHTML
+      } else {
+        typesetMath(note);
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      typesetMath(note);
+      return note.innerHTML;
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -202,6 +1388,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -227,6 +1414,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -287,6 +1500,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+
 
 
 
