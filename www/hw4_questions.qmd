@@ -6,9 +6,9 @@ date: 5/28/2024
 
 This post implements a few measure of variable importance, interpreted as a key drivers analysis, for certain aspects of a payment card on customer satisfaction with that payment card.
 
-# Data
+### Data
 
-### I will start by calling the necessary packages in both R and Python to facilitate data handling and analysis. 
+##### I will start by calling the necessary packages in both R and Python to facilitate data handling and analysis. 
 
 ```{python}
 import pandas as pd
@@ -35,6 +35,7 @@ library(psych)
 library(caret)
 library(stats)
 library(gt)
+library(iml)
 
 ```
 
@@ -99,6 +100,13 @@ plt.show()
 column_order <- c("brand", "build", "differs", "easy", "appealing", "rewarding", "popular", "service", "impact")
 ```
 
+### What is Pearson Correlations?
+Pearson correlation measures the linear relationship between two variables. It provides a value between -1 and 1, where:
+- 1 indicates a perfect positive linear relationship.
+- -1 indicates a perfect negative linear relationship.
+- 0 indicates no linear relationship.
+
+
 
 ```{r}
 # Pearson Correlations
@@ -107,62 +115,163 @@ pearson_corr_satisfaction <- pearson_corr[, "satisfaction"]
 pearson_corr_satisfaction <- pearson_corr_satisfaction[names(pearson_corr_satisfaction) != "satisfaction"]
 
 pearson_corr_satisfaction <- pearson_corr_satisfaction[column_order]
-pearson_corr_satisfaction %>% 
-  knitr::kable()
+pearson_corr_satisfaction 
 ```
 
+#### Pearson Correlation Results Explained
+- brand (-0.0493): This indicates a very weak negative linear relationship between the brand of the payment card and customer satisfaction. Essentially, the brand has almost no impact on satisfaction in a linear context.
+
+- build (0.1919): There is a positive correlation between the perceived build quality of the payment card and customer satisfaction. This suggests that as the build quality improves, customer satisfaction tends to increase, though the relationship is moderate.
+
+- differs (0.1848): This shows a positive correlation between how different the payment card is perceived to be from other cards and customer satisfaction. A unique or differentiated card tends to lead to higher satisfaction.
+
+- easy (0.2130): This positive correlation indicates that ease of use is moderately associated with higher customer satisfaction. Customers are more satisfied when the card is easy to use.
+
+- appealing (0.2080): The visual or overall appeal of the payment card has a moderate positive impact on customer satisfaction. More appealing cards tend to result in higher satisfaction.
+
+- rewarding (0.1946): This positive correlation suggests that a rewarding payment card (e.g., one that offers benefits and rewards) is associated with higher customer satisfaction.
+
+- popular (0.1714): The popularity of the payment card has a positive but relatively weaker correlation with customer satisfaction. More popular cards tend to have higher satisfaction, but the effect is less pronounced compared to other features.
+
+- service (0.2511): This indicates a moderate to strong positive correlation between the quality of customer service and satisfaction. Good customer service is strongly associated with higher customer satisfaction.
+
+- impact (0.2545): The perceived impact of the card has the strongest positive correlation with customer satisfaction among the variables listed. Cards that customers feel make a significant impact in their lives tend to have much higher satisfaction.
+
+In summary, service and impact are the most influential factors, followed by ease of use and appealing features. Brand has the least impact on customer satisfaction in this context.
+
+<br>
+
+
+### What is Multiple Regression Coefficients?
+Multiple regression coefficients represent the relationship between each independent variable (feature) and the dependent variable (customer satisfaction) while holding all other variables constant. In other words, they show the unique contribution of each feature to customer satisfaction.
 
 
 ```{r}
-# Standardized Multiple Regression Coefficients
-model <- lm(satisfaction ~ ., data = df)
-standardized_coeffs <- summary(model)$coefficients[-1, "Estimate"] / sd(df$satisfaction)
+# Standardize the predictor variables and the dependent variable
+df_scaled <- df %>%
+  mutate(across(-satisfaction, scale)) 
+
+# Fit the linear model with standardized predictors
+model <- lm(satisfaction ~ ., data = df_scaled)
+
+# Extract the standardized coefficients
+standardized_coeffs <- summary(model)$coefficients[-1, "Estimate"]
 standardized_coeffs <- standardized_coeffs[column_order]
 standardized_coeffs
+
 ```
 
+#### Multiple Regression Coefficients Explained
+- brand (0.0122): The brand of the payment card has a very small positive impact on customer satisfaction. This suggests that while brand matters, its influence on satisfaction is minimal.
+
+- build (0.0226): The build quality has a small positive impact on customer satisfaction. Better build quality contributes to higher satisfaction, but the effect is modest.
+
+- differs (0.0333): The uniqueness or differentiation of the card has a moderate positive impact on customer satisfaction. Cards perceived as different from others tend to slightly increase satisfaction.
+
+- easy (0.0265): Ease of use has a small to moderate positive impact on customer satisfaction. Customers appreciate cards that are easier to use.
+
+- appealing (0.0411): The visual or overall appeal of the card has a moderate positive impact on customer satisfaction. More appealing cards contribute more significantly to higher satisfaction.
+
+- rewarding (0.0071): Rewards have a very small positive impact on customer satisfaction. While rewards are beneficial, their overall impact on satisfaction is relatively minor.
+
+- popular (0.0204): The popularity of the card has a small positive impact on customer satisfaction. More popular cards tend to slightly increase satisfaction.
+
+- service (0.1029): The quality of customer service has a significant positive impact on customer satisfaction. Good customer service is one of the most influential factors in increasing satisfaction.
+
+- impact (0.1516): The perceived impact of the card has the largest positive impact on customer satisfaction. Cards that make a significant difference in customers' lives lead to much higher satisfaction.
 
 
+Most Significant Drivers: "impact" (0.1516) and "service" (0.1029) are the most significant drivers of customer satisfaction. 
+
+
+
+
+<br>
+
+### What is Johnson's Epilon? 
+Johnson's relative weights are a method used to determine the relative importance of predictor variables in multiple regression analysis. This technique helps to partition the total explained variance (R²) of the dependent variable into contributions attributable to each predictor variable, considering both their unique contributions and their contributions shared with other predictors.
+
+I'm using the "lmg" method in the "relaimpo" package here. 
 
 ```{r}
 # Relative Importance (Johnson's Relative Weights)
-rel_weights <- calc.relimp(model, type = "lmg")
-rel_weights_co <- rel_weights$lmg
+relative_weights <- calc.relimp(model, type = "lmg")
+rel_weights_co <- relative_weights$lmg * 10
 rel_weights_co <- rel_weights_co[column_order]
 rel_weights_co
+
 ```
+
+#### Johnson's Relative Weights
+- brand (0.0034): The brand of the payment card has a very small impact on customer satisfaction. Its contribution to the explained variance in satisfaction is minimal.
+
+- build (0.0716): The build quality of the payment card has a moderate impact on customer satisfaction. It contributes significantly more than the brand, indicating that the physical quality of the card is an important factor for customers.
+
+- differs (0.0727): The feature indicating whether the card is perceived as different from others has a moderate impact on customer satisfaction. Customers value uniqueness, which contributes positively to their satisfaction.
+
+- easy (0.0926): Ease of use has a relatively high impact on customer satisfaction. This suggests that cards that are easier to use contribute significantly to higher satisfaction.
+
+- appealing (0.0914): The visual or overall appeal of the card also has a high impact on customer satisfaction. Customers place a strong value on the attractiveness of the card.
+
+- rewarding (0.0682): The rewards offered by the payment card have a moderate impact on customer satisfaction. While important, rewards are slightly less influential than ease of use and appeal.
+
+- popular (0.0562): The popularity of the payment card has a moderate impact on customer satisfaction. While still important, its influence is less compared to ease of use, appeal, and build quality.
+
+- service (0.1835): The quality of customer service has a significant impact on customer satisfaction. This indicates that good customer service is one of the most important factors in increasing satisfaction.
+
+- impact (0.2362): The perceived impact of the payment card has the highest relative weight, making it the most important predictor of customer satisfaction. This suggests that features of the card that significantly affect the user's experience or lifestyle are crucial to their overall satisfaction.
+
+Most Significant Drivers:
+- Impact (0.2362): The most important factor, indicating that significant positive experiences or effects on users' lives drive satisfaction the most.
+- Service (0.1835): Also highly significant, emphasizing the critical role of high-quality customer service.
+
+<br>
+
+### What is RF Gini Coefficient?
+The RF Gini coefficient, or Random Forest Gini importance, is a measure of feature importance in the context of Random Forest models. It is based on the Gini impurity, which is a metric used to evaluate the quality of splits in decision trees.
+
 
 ```{r}
 # Convert satisfaction to a factor for classification
 df$satisfaction <- as.factor(df$satisfaction)
 
 # Random Forest for Mean Decrease in Gini
+set.seed(123) 
 rf_model <- randomForest::randomForest(satisfaction ~ ., data = df, importance = TRUE)
-importance_values <- randomForest::importance(rf_model, type = 1)
+importance_values <- randomForest::importance(rf_model, type = 2)
 
-importance_values_cols <- c("brand", "id", "trust", "build", "differs", "easy", "appealing", "rewarding", "popular", "service", "impact")
-importance_values <- importance_values %>% as.vector()
+# Extract the Mean Decrease in Gini values
+mean_decrease_gini <- importance_values[, "MeanDecreaseGini"]
 
-# Convert the data frame to a named numeric vector
-importance_values_co <- data.frame(importance_values_cols, importance_values)
+# Normalize the Gini importance values to percentages
+total_importance <- sum(mean_decrease_gini)
+importance_values_named <- (mean_decrease_gini / total_importance) * 1
 
-as_named_num <- function(df) {
-  setNames(df$importance_values, df$importance_values_cols)
-}
-
-importance_values_named <- as_named_num(importance_values_co)
 importance_values_named <- importance_values_named[column_order]
 importance_values_named
 
 ```
 
-```{r}
-# Shapley Values using LMG method
-shapley_values <- calc.relimp(model, type = "lmg")
-shapley_values_co <- shapley_values$lmg
-shapley_values_co <- shapley_values_co[column_order]
-shapley_values_co
-```
+#### Mean Decrease in RF Gini Coefficient
+- brand (0.1884): The brand of the payment card has the highest importance according to the RF Gini importance metric. This suggests that brand plays a significant role in predicting customer satisfaction within the context of the Random Forest model.
+
+- build (0.0518): The build quality of the payment card has a moderate importance. This indicates that the physical quality of the card is an important factor, but less critical compared to brand.
+
+- differs (0.0468): The feature indicating whether the card is perceived as different from others has moderate importance. Customers value uniqueness, but its impact is slightly less compared to build quality.
+
+- easy (0.0499): Ease of use has moderate importance. This suggests that how easy the card is to use contributes to customer satisfaction, but is less influential than brand.
+
+- appealing (0.0490): The visual or overall appeal of the card has moderate importance. While appealing features are valued, their importance is similar to ease of use.
+
+- rewarding (0.0509): The rewards offered by the payment card have moderate importance. Rewards are slightly more influential than ease of use and appeal in predicting customer satisfaction.
+
+- popular (0.0575): The popularity of the payment card has moderate importance. It is more influential than ease of use, appeal, and build quality but less critical than brand.
+
+- service (0.0465): The quality of customer service has moderate importance. Although customer service is crucial, its importance is slightly less than that of rewards and popularity in the context of the Random Forest model.
+
+- impact (0.0452): The perceived impact of the payment card has moderate importance. It is the least important feature among the ones listed, but still contributes to the overall prediction of customer satisfaction.
+
+Most Significant Driver: Brand (0.1884) is the most important feature in the Random Forest model, indicating that the brand of the card significantly influences customer satisfaction.
 
 
 ```{r}
@@ -172,7 +281,6 @@ results <- data.frame(
                  "Is used by a lot of people", "Provides outstanding customer service", "Makes a difference in my life"),
   Pearson_Correlations = pearson_corr_satisfaction,
   Standardized_Multiple_Regression_Coefficients = standardized_coeffs,
-  Shapley_Values = shapley_values_co,
   Johnsons_Relative_Weights = rel_weights_co,
   Mean_Decrease_in_RF_Gini_Coefficient = importance_values_named
 )
@@ -189,7 +297,6 @@ gt_table <- gt(results) %>%
     Perception = "Perception",
     Pearson_Correlations = md("Pearson<br>Correlations"),
     Standardized_Multiple_Regression_Coefficients = md("Standardized<br>Multiple Regression<br>Coefficients"),
-    Shapley_Values = md("Shapley<br>Values"),
     Johnsons_Relative_Weights = md("Johnsons<br>Relative Weights"),
     Mean_Decrease_in_RF_Gini_Coefficient = md("Mean Decrease in<br>RF Gini Coefficient")
   ) %>%
@@ -203,13 +310,72 @@ gt_table
 ```
 
 
+##### I will rank the variables by importance by scoring and considering all the metrics previously mentioned: Pearson correlations, standardized regression coefficients, Johnson's relative weights, and the mean decrease in the Gini coefficient from a Random Forest. Each metric will be evaluated and combined to provide a comprehensive ranking of the variables based on their overall contribution and impact on the model. This ranking will help in understanding which variables are most influential in predicting the outcome.
 
 
+```{r}
+# Input the importance values from the table
+importance_data <- data.frame(
+  Variables = column_order,
+  Pearson = pearson_corr_satisfaction,
+  Standardized_Coefficients = standardized_coeffs,
+  Johnsons_Weights = rel_weights_co,
+  RF_Gini = importance_values_named
+)
 
-_If you want a challenge, either (1) implement one or more of the measures yourself. "Usefulness" is rather easy to program up. Shapley values for linear regression are a bit more work. Or (2) add additional measures to the table such as the importance scores from XGBoost._
+importance_data %>% 
+  knitr::kable()
+
+```
+
+```{r}
+# Normalize the scores (convert Pearson to absolute values for normalization)
+importance_data_normalized <- importance_data %>%
+  mutate(
+    Pearson = abs(Pearson),
+    Pearson = Pearson / sum(Pearson) * 100,
+    Standardized_Coefficients = Standardized_Coefficients / sum(Standardized_Coefficients) * 100,
+    Johnsons_Weights = Johnsons_Weights / sum(Johnsons_Weights) * 100,
+    RF_Gini = RF_Gini / sum(RF_Gini) * 100
+  )
+
+importance_data_normalized %>% 
+  knitr::kable()
+
+```
+
+```{r}
+# Calculate the composite scores
+importance_data_normalized <- importance_data_normalized %>%
+  rowwise() %>%
+  mutate(Composite_Score = mean(c(Pearson, Standardized_Coefficients, Johnsons_Weights, RF_Gini)))
+
+importance_data_normalized %>% 
+  knitr::kable()
+
+```
+
+```{r}
+# Rank the variables based on composite scores
+importance_data_ranked <- importance_data_normalized %>%
+  dplyr::arrange(desc(Composite_Score)) %>%
+  dplyr::select(Variables, Composite_Score) 
+
+importance_data_ranked %>% 
+  knitr::kable()
+
+```
 
 
+### Conclusion
+From this variable analysis, it is clear that certain features have a more substantial impact on customer satisfaction than others. 
 
+- Focus on Impact and Service: The features "Makes a difference in my life" and "Provides outstanding customer service" are the most influential drivers of customer satisfaction. Efforts to improve these areas will likely yield the most significant improvements in customer satisfaction.
 
+- Enhance Appeal and Usability: Features related to appealing benefits and ease of use are also critical. Ensuring that the payment card offers attractive rewards and is user-friendly can significantly enhance customer satisfaction.
 
+- Brand Trust: Trust in the brand is important but not the most critical factor. Building a trustworthy brand should still be a priority, but not at the expense of improving impact, service, and usability.
 
+- Differentiation and Credit Building: Emphasizing unique features that differentiate the card from others and highlighting benefits related to building credit can also positively influence customer satisfaction.
+
+- Moderate Importance of Popularity and Rewards for Usage: While popularity and rewards for responsible usage are important, they are not as influential as other factors. These should be considered but may not require as much focus as impact, service, and appeal.

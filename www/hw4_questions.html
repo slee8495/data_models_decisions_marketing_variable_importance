@@ -110,10 +110,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>This post implements a few measure of variable importance, interpreted as a key drivers analysis, for certain aspects of a payment card on customer satisfaction with that payment card.</p>
-<section id="data" class="level1">
-<h1>Data</h1>
-<section id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis." class="level3">
-<h3 class="anchored" data-anchor-id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis.">I will start by calling the necessary packages in both R and Python to facilitate data handling and analysis.</h3>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<section id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis." class="level5">
+<h5 class="anchored" data-anchor-id="i-will-start-by-calling-the-necessary-packages-in-both-r-and-python-to-facilitate-data-handling-and-analysis.">I will start by calling the necessary packages in both R and Python to facilitate data handling and analysis.</h5>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -136,7 +136,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(psych)</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stats)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(iml)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data_for_drivers_analysis.csv"</span>)</span>
@@ -321,6 +322,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
+</section>
 <section id="data-explanation" class="level3">
 <h3 class="anchored" data-anchor-id="data-explanation">Data Explanation</h3>
 <ul>
@@ -386,6 +388,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>column_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"brand"</span>, <span class="st">"build"</span>, <span class="st">"differs"</span>, <span class="st">"easy"</span>, <span class="st">"appealing"</span>, <span class="st">"rewarding"</span>, <span class="st">"popular"</span>, <span class="st">"service"</span>, <span class="st">"impact"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+</section>
+</section>
+<section id="what-is-pearson-correlations" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-pearson-correlations">What is Pearson Correlations?</h3>
+<p>Pearson correlation measures the linear relationship between two variables. It provides a value between -1 and 1, where: - 1 indicates a perfect positive linear relationship. - -1 indicates a perfect negative linear relationship. - 0 indicates no linear relationship.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pearson Correlations</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pearson_corr <span class="ot">&lt;-</span> <span class="fu">cor</span>(df)</span>
@@ -393,176 +401,196 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="ot">&lt;-</span> pearson_corr_satisfaction[<span class="fu">names</span>(pearson_corr_satisfaction) <span class="sc">!=</span> <span class="st">"satisfaction"</span>]</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="ot">&lt;-</span> pearson_corr_satisfaction[column_order]</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction <span class="sc">%&gt;%</span> </span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>pearson_corr_satisfaction </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      brand       build     differs        easy   appealing   rewarding 
+-0.04929602  0.19189575  0.18480093  0.21298469  0.20799652  0.19456145 
+    popular     service      impact 
+ 0.17142528  0.25109823  0.25453855 </code></pre>
+</div>
+</div>
+<section id="pearson-correlation-results-explained" class="level4">
+<h4 class="anchored" data-anchor-id="pearson-correlation-results-explained">Pearson Correlation Results Explained</h4>
+<ul>
+<li><p>brand (-0.0493): This indicates a very weak negative linear relationship between the brand of the payment card and customer satisfaction. Essentially, the brand has almost no impact on satisfaction in a linear context.</p></li>
+<li><p>build (0.1919): There is a positive correlation between the perceived build quality of the payment card and customer satisfaction. This suggests that as the build quality improves, customer satisfaction tends to increase, though the relationship is moderate.</p></li>
+<li><p>differs (0.1848): This shows a positive correlation between how different the payment card is perceived to be from other cards and customer satisfaction. A unique or differentiated card tends to lead to higher satisfaction.</p></li>
+<li><p>easy (0.2130): This positive correlation indicates that ease of use is moderately associated with higher customer satisfaction. Customers are more satisfied when the card is easy to use.</p></li>
+<li><p>appealing (0.2080): The visual or overall appeal of the payment card has a moderate positive impact on customer satisfaction. More appealing cards tend to result in higher satisfaction.</p></li>
+<li><p>rewarding (0.1946): This positive correlation suggests that a rewarding payment card (e.g., one that offers benefits and rewards) is associated with higher customer satisfaction.</p></li>
+<li><p>popular (0.1714): The popularity of the payment card has a positive but relatively weaker correlation with customer satisfaction. More popular cards tend to have higher satisfaction, but the effect is less pronounced compared to other features.</p></li>
+<li><p>service (0.2511): This indicates a moderate to strong positive correlation between the quality of customer service and satisfaction. Good customer service is strongly associated with higher customer satisfaction.</p></li>
+<li><p>impact (0.2545): The perceived impact of the card has the strongest positive correlation with customer satisfaction among the variables listed. Cards that customers feel make a significant impact in their lives tend to have much higher satisfaction.</p></li>
+</ul>
+<p>In summary, service and impact are the most influential factors, followed by ease of use and appealing features. Brand has the least impact on customer satisfaction in this context.</p>
+<p><br></p>
+</section>
+</section>
+<section id="what-is-multiple-regression-coefficients" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-multiple-regression-coefficients">What is Multiple Regression Coefficients?</h3>
+<p>Multiple regression coefficients represent the relationship between each independent variable (feature) and the dependent variable (customer satisfaction) while holding all other variables constant. In other words, they show the unique contribution of each feature to customer satisfaction.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize the predictor variables and the dependent variable</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>df_scaled <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>satisfaction, scale)) </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the linear model with standardized predictors</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df_scaled)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the standardized coefficients</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[<span class="sc">-</span><span class="dv">1</span>, <span class="st">"Estimate"</span>]</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> standardized_coeffs[column_order]</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>standardized_coeffs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     brand      build    differs       easy  appealing  rewarding    popular 
+0.01216632 0.02256820 0.03326360 0.02650449 0.04111114 0.00709324 0.02035154 
+   service     impact 
+0.10288677 0.15160538 </code></pre>
+</div>
+</div>
+<section id="multiple-regression-coefficients-explained" class="level4">
+<h4 class="anchored" data-anchor-id="multiple-regression-coefficients-explained">Multiple Regression Coefficients Explained</h4>
+<ul>
+<li><p>brand (0.0122): The brand of the payment card has a very small positive impact on customer satisfaction. This suggests that while brand matters, its influence on satisfaction is minimal.</p></li>
+<li><p>build (0.0226): The build quality has a small positive impact on customer satisfaction. Better build quality contributes to higher satisfaction, but the effect is modest.</p></li>
+<li><p>differs (0.0333): The uniqueness or differentiation of the card has a moderate positive impact on customer satisfaction. Cards perceived as different from others tend to slightly increase satisfaction.</p></li>
+<li><p>easy (0.0265): Ease of use has a small to moderate positive impact on customer satisfaction. Customers appreciate cards that are easier to use.</p></li>
+<li><p>appealing (0.0411): The visual or overall appeal of the card has a moderate positive impact on customer satisfaction. More appealing cards contribute more significantly to higher satisfaction.</p></li>
+<li><p>rewarding (0.0071): Rewards have a very small positive impact on customer satisfaction. While rewards are beneficial, their overall impact on satisfaction is relatively minor.</p></li>
+<li><p>popular (0.0204): The popularity of the card has a small positive impact on customer satisfaction. More popular cards tend to slightly increase satisfaction.</p></li>
+<li><p>service (0.1029): The quality of customer service has a significant positive impact on customer satisfaction. Good customer service is one of the most influential factors in increasing satisfaction.</p></li>
+<li><p>impact (0.1516): The perceived impact of the card has the largest positive impact on customer satisfaction. Cards that make a significant difference in customers’ lives lead to much higher satisfaction.</p></li>
+</ul>
+<p>Most Significant Drivers: “impact” (0.1516) and “service” (0.1029) are the most significant drivers of customer satisfaction.</p>
+<p><br></p>
+</section>
+</section>
+<section id="what-is-johnsons-epilon" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-johnsons-epilon">What is Johnson’s Epilon?</h3>
+<p>Johnson’s relative weights are a method used to determine the relative importance of predictor variables in multiple regression analysis. This technique helps to partition the total explained variance (R²) of the dependent variable into contributions attributable to each predictor variable, considering both their unique contributions and their contributions shared with other predictors.</p>
+<p>I’m using the “lmg” method in the “relaimpo” package here.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Relative Importance (Johnson's Relative Weights)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>relative_weights <span class="ot">&lt;-</span> <span class="fu">calc.relimp</span>(model, <span class="at">type =</span> <span class="st">"lmg"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> relative_weights<span class="sc">$</span>lmg <span class="sc">*</span> <span class="dv">10</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> rel_weights_co[column_order]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>rel_weights_co</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     brand      build    differs       easy  appealing  rewarding    popular 
+0.00342336 0.07163072 0.07269522 0.09260610 0.09136379 0.06820223 0.05621660 
+   service     impact 
+0.18348956 0.23622808 </code></pre>
+</div>
+</div>
+<section id="johnsons-relative-weights" class="level4">
+<h4 class="anchored" data-anchor-id="johnsons-relative-weights">Johnson’s Relative Weights</h4>
+<ul>
+<li><p>brand (0.0034): The brand of the payment card has a very small impact on customer satisfaction. Its contribution to the explained variance in satisfaction is minimal.</p></li>
+<li><p>build (0.0716): The build quality of the payment card has a moderate impact on customer satisfaction. It contributes significantly more than the brand, indicating that the physical quality of the card is an important factor for customers.</p></li>
+<li><p>differs (0.0727): The feature indicating whether the card is perceived as different from others has a moderate impact on customer satisfaction. Customers value uniqueness, which contributes positively to their satisfaction.</p></li>
+<li><p>easy (0.0926): Ease of use has a relatively high impact on customer satisfaction. This suggests that cards that are easier to use contribute significantly to higher satisfaction.</p></li>
+<li><p>appealing (0.0914): The visual or overall appeal of the card also has a high impact on customer satisfaction. Customers place a strong value on the attractiveness of the card.</p></li>
+<li><p>rewarding (0.0682): The rewards offered by the payment card have a moderate impact on customer satisfaction. While important, rewards are slightly less influential than ease of use and appeal.</p></li>
+<li><p>popular (0.0562): The popularity of the payment card has a moderate impact on customer satisfaction. While still important, its influence is less compared to ease of use, appeal, and build quality.</p></li>
+<li><p>service (0.1835): The quality of customer service has a significant impact on customer satisfaction. This indicates that good customer service is one of the most important factors in increasing satisfaction.</p></li>
+<li><p>impact (0.2362): The perceived impact of the payment card has the highest relative weight, making it the most important predictor of customer satisfaction. This suggests that features of the card that significantly affect the user’s experience or lifestyle are crucial to their overall satisfaction.</p></li>
+</ul>
+<p>Most Significant Drivers: - Impact (0.2362): The most important factor, indicating that significant positive experiences or effects on users’ lives drive satisfaction the most. - Service (0.1835): Also highly significant, emphasizing the critical role of high-quality customer service.</p>
+<p><br></p>
+</section>
+</section>
+<section id="what-is-rf-gini-coefficient" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-rf-gini-coefficient">What is RF Gini Coefficient?</h3>
+<p>The RF Gini coefficient, or Random Forest Gini importance, is a measure of feature importance in the context of Random Forest models. It is based on the Gini impurity, which is a metric used to evaluate the quality of splits in decision trees.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert satisfaction to a factor for classification</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>satisfaction <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df<span class="sc">$</span>satisfaction)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Random Forest for Mean Decrease in Gini</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">randomForest</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>importance_values <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">importance</span>(rf_model, <span class="at">type =</span> <span class="dv">2</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the Mean Decrease in Gini values</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>mean_decrease_gini <span class="ot">&lt;-</span> importance_values[, <span class="st">"MeanDecreaseGini"</span>]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize the Gini importance values to percentages</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>total_importance <span class="ot">&lt;-</span> <span class="fu">sum</span>(mean_decrease_gini)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> (mean_decrease_gini <span class="sc">/</span> total_importance) <span class="sc">*</span> <span class="dv">1</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> importance_values_named[column_order]</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>importance_values_named</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     brand      build    differs       easy  appealing  rewarding    popular 
+0.18836033 0.05178355 0.04675531 0.04993704 0.04901403 0.05085820 0.05748903 
+   service     impact 
+0.04645259 0.04515332 </code></pre>
+</div>
+</div>
+<section id="mean-decrease-in-rf-gini-coefficient" class="level4">
+<h4 class="anchored" data-anchor-id="mean-decrease-in-rf-gini-coefficient">Mean Decrease in RF Gini Coefficient</h4>
+<ul>
+<li><p>brand (0.1884): The brand of the payment card has the highest importance according to the RF Gini importance metric. This suggests that brand plays a significant role in predicting customer satisfaction within the context of the Random Forest model.</p></li>
+<li><p>build (0.0518): The build quality of the payment card has a moderate importance. This indicates that the physical quality of the card is an important factor, but less critical compared to brand.</p></li>
+<li><p>differs (0.0468): The feature indicating whether the card is perceived as different from others has moderate importance. Customers value uniqueness, but its impact is slightly less compared to build quality.</p></li>
+<li><p>easy (0.0499): Ease of use has moderate importance. This suggests that how easy the card is to use contributes to customer satisfaction, but is less influential than brand.</p></li>
+<li><p>appealing (0.0490): The visual or overall appeal of the card has moderate importance. While appealing features are valued, their importance is similar to ease of use.</p></li>
+<li><p>rewarding (0.0509): The rewards offered by the payment card have moderate importance. Rewards are slightly more influential than ease of use and appeal in predicting customer satisfaction.</p></li>
+<li><p>popular (0.0575): The popularity of the payment card has moderate importance. It is more influential than ease of use, appeal, and build quality but less critical than brand.</p></li>
+<li><p>service (0.0465): The quality of customer service has moderate importance. Although customer service is crucial, its importance is slightly less than that of rewards and popularity in the context of the Random Forest model.</p></li>
+<li><p>impact (0.0452): The perceived impact of the payment card has moderate importance. It is the least important feature among the ones listed, but still contributes to the overall prediction of customer satisfaction.</p></li>
+</ul>
+<p>Most Significant Driver: Brand (0.1884) is the most important feature in the Random Forest model, indicating that the brand of the card significantly influences customer satisfaction.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Perception =</span> <span class="fu">c</span>(<span class="st">"Is offered by a brand I trust"</span>, <span class="st">"Helps build credit quickly"</span>, <span class="st">"Is different from other cards"</span>, </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is easy to use"</span>, <span class="st">"Has appealing benefits or rewards"</span>, <span class="st">"Rewards me for responsible usage"</span>, </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is used by a lot of people"</span>, <span class="st">"Provides outstanding customer service"</span>, <span class="st">"Makes a difference in my life"</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pearson_Correlations =</span> pearson_corr_satisfaction,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Standardized_Multiple_Regression_Coefficients =</span> standardized_coeffs,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Johnsons_Relative_Weights =</span> rel_weights_co,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> importance_values_named</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Round and convert numerical columns to percentage strings</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results <span class="sc">%&gt;%</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">round</span>(. <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">paste0</span>(., <span class="st">"%"</span>)))</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>gt_table <span class="ot">&lt;-</span> <span class="fu">gt</span>(results) <span class="sc">%&gt;%</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"Perception Analysis"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Perception =</span> <span class="st">"Perception"</span>,</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pearson_Correlations =</span> <span class="fu">md</span>(<span class="st">"Pearson&lt;br&gt;Correlations"</span>),</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">Standardized_Multiple_Regression_Coefficients =</span> <span class="fu">md</span>(<span class="st">"Standardized&lt;br&gt;Multiple Regression&lt;br&gt;Coefficients"</span>),</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Johnsons_Relative_Weights =</span> <span class="fu">md</span>(<span class="st">"Johnsons&lt;br&gt;Relative Weights"</span>),</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> <span class="fu">md</span>(<span class="st">"Mean Decrease in&lt;br&gt;RF Gini Coefficient"</span>)</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">table.font.size =</span> <span class="st">'small'</span>,</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_row.padding =</span> <span class="fu">px</span>(<span class="dv">3</span>)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>gt_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">x</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">brand</td>
-<td style="text-align: right;">-0.0492960</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">build</td>
-<td style="text-align: right;">0.1918957</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">differs</td>
-<td style="text-align: right;">0.1848009</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">easy</td>
-<td style="text-align: right;">0.2129847</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">appealing</td>
-<td style="text-align: right;">0.2079965</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">rewarding</td>
-<td style="text-align: right;">0.1945615</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">popular</td>
-<td style="text-align: right;">0.1714253</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">service</td>
-<td style="text-align: right;">0.2510982</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">impact</td>
-<td style="text-align: right;">0.2545386</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized Multiple Regression Coefficients</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[<span class="sc">-</span><span class="dv">1</span>, <span class="st">"Estimate"</span>] <span class="sc">/</span> <span class="fu">sd</span>(df<span class="sc">$</span>satisfaction)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>standardized_coeffs <span class="ot">&lt;-</span> standardized_coeffs[column_order]</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>standardized_coeffs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      brand       build     differs        easy   appealing   rewarding 
-0.003667991 0.038617355 0.060142243 0.045339619 0.070477451 0.012160048 
-    popular     service      impact 
-0.034814144 0.175916178 0.274838929 </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Relative Importance (Johnson's Relative Weights)</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>rel_weights <span class="ot">&lt;-</span> <span class="fu">calc.relimp</span>(model, <span class="at">type =</span> <span class="st">"lmg"</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> rel_weights<span class="sc">$</span>lmg</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>rel_weights_co <span class="ot">&lt;-</span> rel_weights_co[column_order]</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>rel_weights_co</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      brand       build     differs        easy   appealing   rewarding 
-0.000342336 0.007163072 0.007269522 0.009260610 0.009136379 0.006820223 
-    popular     service      impact 
-0.005621660 0.018348956 0.023622808 </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert satisfaction to a factor for classification</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>satisfaction <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df<span class="sc">$</span>satisfaction)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Random Forest for Mean Decrease in Gini</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">randomForest</span>(satisfaction <span class="sc">~</span> ., <span class="at">data =</span> df, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>importance_values <span class="ot">&lt;-</span> randomForest<span class="sc">::</span><span class="fu">importance</span>(rf_model, <span class="at">type =</span> <span class="dv">1</span>)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>importance_values_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"brand"</span>, <span class="st">"id"</span>, <span class="st">"trust"</span>, <span class="st">"build"</span>, <span class="st">"differs"</span>, <span class="st">"easy"</span>, <span class="st">"appealing"</span>, <span class="st">"rewarding"</span>, <span class="st">"popular"</span>, <span class="st">"service"</span>, <span class="st">"impact"</span>)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>importance_values <span class="ot">&lt;-</span> importance_values <span class="sc">%&gt;%</span> <span class="fu">as.vector</span>()</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the data frame to a named numeric vector</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>importance_values_co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(importance_values_cols, importance_values)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>as_named_num <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setNames</span>(df<span class="sc">$</span>importance_values, df<span class="sc">$</span>importance_values_cols)</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> <span class="fu">as_named_num</span>(importance_values_co)</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>importance_values_named <span class="ot">&lt;-</span> importance_values_named[column_order]</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>importance_values_named</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>    brand     build   differs      easy appealing rewarding   popular   service 
--2.823551 20.878250 15.718782 18.805249 12.377324 15.472671 17.462664 21.852306 
-   impact 
-18.575924 </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Shapley Values using LMG method</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>shapley_values <span class="ot">&lt;-</span> <span class="fu">calc.relimp</span>(model, <span class="at">type =</span> <span class="st">"lmg"</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>shapley_values_co <span class="ot">&lt;-</span> shapley_values<span class="sc">$</span>lmg</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>shapley_values_co <span class="ot">&lt;-</span> shapley_values_co[column_order]</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>shapley_values_co</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      brand       build     differs        easy   appealing   rewarding 
-0.000342336 0.007163072 0.007269522 0.009260610 0.009136379 0.006820223 
-    popular     service      impact 
-0.005621660 0.018348956 0.023622808 </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Perception =</span> <span class="fu">c</span>(<span class="st">"Is offered by a brand I trust"</span>, <span class="st">"Helps build credit quickly"</span>, <span class="st">"Is different from other cards"</span>, </span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is easy to use"</span>, <span class="st">"Has appealing benefits or rewards"</span>, <span class="st">"Rewards me for responsible usage"</span>, </span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Is used by a lot of people"</span>, <span class="st">"Provides outstanding customer service"</span>, <span class="st">"Makes a difference in my life"</span>),</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pearson_Correlations =</span> pearson_corr_satisfaction,</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Standardized_Multiple_Regression_Coefficients =</span> standardized_coeffs,</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Shapley_Values =</span> shapley_values_co,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Johnsons_Relative_Weights =</span> rel_weights_co,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> importance_values_named</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Round and convert numerical columns to percentage strings</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results <span class="sc">%&gt;%</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">round</span>(. <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>Perception, <span class="sc">~</span> <span class="fu">paste0</span>(., <span class="st">"%"</span>)))</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>gt_table <span class="ot">&lt;-</span> <span class="fu">gt</span>(results) <span class="sc">%&gt;%</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"Perception Analysis"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Perception =</span> <span class="st">"Perception"</span>,</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pearson_Correlations =</span> <span class="fu">md</span>(<span class="st">"Pearson&lt;br&gt;Correlations"</span>),</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Standardized_Multiple_Regression_Coefficients =</span> <span class="fu">md</span>(<span class="st">"Standardized&lt;br&gt;Multiple Regression&lt;br&gt;Coefficients"</span>),</span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">Shapley_Values =</span> <span class="fu">md</span>(<span class="st">"Shapley&lt;br&gt;Values"</span>),</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">Johnsons_Relative_Weights =</span> <span class="fu">md</span>(<span class="st">"Johnsons&lt;br&gt;Relative Weights"</span>),</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean_Decrease_in_RF_Gini_Coefficient =</span> <span class="fu">md</span>(<span class="st">"Mean Decrease in&lt;br&gt;RF Gini Coefficient"</span>)</span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(</span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">table.font.size =</span> <span class="st">'small'</span>,</span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_row.padding =</span> <span class="fu">px</span>(<span class="dv">3</span>)</span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>gt_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div id="mhgfldhrdg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#mhgfldhrdg table {
+<div id="ujkmihcoww" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ujkmihcoww table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#mhgfldhrdg thead, #mhgfldhrdg tbody, #mhgfldhrdg tfoot, #mhgfldhrdg tr, #mhgfldhrdg td, #mhgfldhrdg th {
+#ujkmihcoww thead, #ujkmihcoww tbody, #ujkmihcoww tfoot, #ujkmihcoww tr, #ujkmihcoww td, #ujkmihcoww th {
   border-style: none;
 }
 
-#mhgfldhrdg p {
+#ujkmihcoww p {
   margin: 0;
   padding: 0;
 }
 
-#mhgfldhrdg .gt_table {
+#ujkmihcoww .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -588,12 +616,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_caption {
+#ujkmihcoww .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#mhgfldhrdg .gt_title {
+#ujkmihcoww .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -605,7 +633,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#mhgfldhrdg .gt_subtitle {
+#ujkmihcoww .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -617,7 +645,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#mhgfldhrdg .gt_heading {
+#ujkmihcoww .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -629,13 +657,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_bottom_border {
+#ujkmihcoww .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_col_headings {
+#ujkmihcoww .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -650,7 +678,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_col_heading {
+#ujkmihcoww .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -670,7 +698,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mhgfldhrdg .gt_column_spanner_outer {
+#ujkmihcoww .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -682,15 +710,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#mhgfldhrdg .gt_column_spanner_outer:first-child {
+#ujkmihcoww .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mhgfldhrdg .gt_column_spanner_outer:last-child {
+#ujkmihcoww .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mhgfldhrdg .gt_column_spanner {
+#ujkmihcoww .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -702,11 +730,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#mhgfldhrdg .gt_spanner_row {
+#ujkmihcoww .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#mhgfldhrdg .gt_group_heading {
+#ujkmihcoww .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -732,7 +760,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#mhgfldhrdg .gt_empty_group_heading {
+#ujkmihcoww .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -747,15 +775,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#mhgfldhrdg .gt_from_md > :first-child {
+#ujkmihcoww .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mhgfldhrdg .gt_from_md > :last-child {
+#ujkmihcoww .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mhgfldhrdg .gt_row {
+#ujkmihcoww .gt_row {
   padding-top: 3px;
   padding-bottom: 3px;
   padding-left: 5px;
@@ -774,7 +802,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mhgfldhrdg .gt_stub {
+#ujkmihcoww .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -787,7 +815,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mhgfldhrdg .gt_stub_row_group {
+#ujkmihcoww .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -801,15 +829,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#mhgfldhrdg .gt_row_group_first td {
+#ujkmihcoww .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mhgfldhrdg .gt_row_group_first th {
+#ujkmihcoww .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#mhgfldhrdg .gt_summary_row {
+#ujkmihcoww .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -819,16 +847,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mhgfldhrdg .gt_first_summary_row {
+#ujkmihcoww .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_first_summary_row.thick {
+#ujkmihcoww .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mhgfldhrdg .gt_last_summary_row {
+#ujkmihcoww .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -838,7 +866,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_grand_summary_row {
+#ujkmihcoww .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -848,7 +876,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mhgfldhrdg .gt_first_grand_summary_row {
+#ujkmihcoww .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -858,7 +886,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_last_grand_summary_row_top {
+#ujkmihcoww .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -868,11 +896,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_striped {
+#ujkmihcoww .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mhgfldhrdg .gt_table_body {
+#ujkmihcoww .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -881,7 +909,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_footnotes {
+#ujkmihcoww .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -895,7 +923,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_footnote {
+#ujkmihcoww .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -904,7 +932,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mhgfldhrdg .gt_sourcenotes {
+#ujkmihcoww .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -918,7 +946,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mhgfldhrdg .gt_sourcenote {
+#ujkmihcoww .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -926,79 +954,78 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mhgfldhrdg .gt_left {
+#ujkmihcoww .gt_left {
   text-align: left;
 }
 
-#mhgfldhrdg .gt_center {
+#ujkmihcoww .gt_center {
   text-align: center;
 }
 
-#mhgfldhrdg .gt_right {
+#ujkmihcoww .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mhgfldhrdg .gt_font_normal {
+#ujkmihcoww .gt_font_normal {
   font-weight: normal;
 }
 
-#mhgfldhrdg .gt_font_bold {
+#ujkmihcoww .gt_font_bold {
   font-weight: bold;
 }
 
-#mhgfldhrdg .gt_font_italic {
+#ujkmihcoww .gt_font_italic {
   font-style: italic;
 }
 
-#mhgfldhrdg .gt_super {
+#ujkmihcoww .gt_super {
   font-size: 65%;
 }
 
-#mhgfldhrdg .gt_footnote_marks {
+#ujkmihcoww .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#mhgfldhrdg .gt_asterisk {
+#ujkmihcoww .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mhgfldhrdg .gt_indent_1 {
+#ujkmihcoww .gt_indent_1 {
   text-indent: 5px;
 }
 
-#mhgfldhrdg .gt_indent_2 {
+#ujkmihcoww .gt_indent_2 {
   text-indent: 10px;
 }
 
-#mhgfldhrdg .gt_indent_3 {
+#ujkmihcoww .gt_indent_3 {
   text-indent: 15px;
 }
 
-#mhgfldhrdg .gt_indent_4 {
+#ujkmihcoww .gt_indent_4 {
   text-indent: 20px;
 }
 
-#mhgfldhrdg .gt_indent_5 {
+#ujkmihcoww .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
 
 <table class="gt_table table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
 </colgroup>
 <thead>
 <tr class="header gt_heading">
-<th colspan="6" class="gt_heading gt_title gt_font_normal gt_bottom_border">Perception Analysis</th>
+<th colspan="5" class="gt_heading gt_title gt_font_normal gt_bottom_border">Perception Analysis</th>
 </tr>
 <tr class="odd gt_col_headings">
 <th id="Perception" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Perception</th>
@@ -1007,8 +1034,6 @@ Correlations</th>
 <th id="Standardized<br>Multiple Regression<br>Coefficients" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Standardized<br>
 Multiple Regression<br>
 Coefficients</th>
-<th id="Shapley<br>Values" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Shapley<br>
-Values</th>
 <th id="Johnsons<br>Relative Weights" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Johnsons<br>
 Relative Weights</th>
 <th id="Mean Decrease in<br>RF Gini Coefficient" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean Decrease in<br>
@@ -1019,74 +1044,65 @@ RF Gini Coefficient</th>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Perception">Is offered by a brand I trust</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">-4.9%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">0.4%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">-282.4%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">1.2%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.3%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">18.8%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Perception">Helps build credit quickly</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">19.2%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">3.9%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">2087.8%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">2.3%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">7.2%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">5.2%</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Perception">Is different from other cards</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">18.5%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">6%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1571.9%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">3.3%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">7.3%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">4.7%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Perception">Is easy to use</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">21.3%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">4.5%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.9%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.9%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1880.5%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">2.7%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">9.3%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">5%</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Perception">Has appealing benefits or rewards</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">20.8%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">7%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.9%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.9%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1237.7%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">4.1%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">9.1%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">4.9%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Perception">Rewards me for responsible usage</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">19.5%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">1.2%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.7%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.7%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1547.3%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">0.7%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">6.8%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">5.1%</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Perception">Is used by a lot of people</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">17.1%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">3.5%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">0.6%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">0.6%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1746.3%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">2%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">5.6%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">5.7%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Perception">Provides outstanding customer service</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">25.1%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">17.6%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">1.8%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">1.8%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">2185.2%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">10.3%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">18.3%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">4.6%</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Perception">Makes a difference in my life</td>
 <td class="gt_row gt_right" headers="Pearson_Correlations">25.5%</td>
-<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">27.5%</td>
-<td class="gt_row gt_right" headers="Shapley_Values">2.4%</td>
-<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">2.4%</td>
-<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">1857.6%</td>
+<td class="gt_row gt_right" headers="Standardized_Multiple_Regression_Coefficients">15.2%</td>
+<td class="gt_row gt_right" headers="Johnsons_Relative_Weights">23.6%</td>
+<td class="gt_row gt_right" headers="Mean_Decrease_in_RF_Gini_Coefficient">4.5%</td>
 </tr>
 </tbody>
 </table>
@@ -1094,10 +1110,402 @@ RF Gini Coefficient</th>
 </div>
 </div>
 </div>
-<p><em>If you want a challenge, either (1) implement one or more of the measures yourself. “Usefulness” is rather easy to program up. Shapley values for linear regression are a bit more work. Or (2) add additional measures to the table such as the importance scores from XGBoost.</em></p>
+<section id="i-will-rank-the-variables-by-importance-by-scoring-and-considering-all-the-metrics-previously-mentioned-pearson-correlations-standardized-regression-coefficients-johnsons-relative-weights-and-the-mean-decrease-in-the-gini-coefficient-from-a-random-forest.-each-metric-will-be-evaluated-and-combined-to-provide-a-comprehensive-ranking-of-the-variables-based-on-their-overall-contribution-and-impact-on-the-model.-this-ranking-will-help-in-understanding-which-variables-are-most-influential-in-predicting-the-outcome." class="level5">
+<h5 class="anchored" data-anchor-id="i-will-rank-the-variables-by-importance-by-scoring-and-considering-all-the-metrics-previously-mentioned-pearson-correlations-standardized-regression-coefficients-johnsons-relative-weights-and-the-mean-decrease-in-the-gini-coefficient-from-a-random-forest.-each-metric-will-be-evaluated-and-combined-to-provide-a-comprehensive-ranking-of-the-variables-based-on-their-overall-contribution-and-impact-on-the-model.-this-ranking-will-help-in-understanding-which-variables-are-most-influential-in-predicting-the-outcome.">I will rank the variables by importance by scoring and considering all the metrics previously mentioned: Pearson correlations, standardized regression coefficients, Johnson’s relative weights, and the mean decrease in the Gini coefficient from a Random Forest. Each metric will be evaluated and combined to provide a comprehensive ranking of the variables based on their overall contribution and impact on the model. This ranking will help in understanding which variables are most influential in predicting the outcome.</h5>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Input the importance values from the table</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>importance_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Variables =</span> column_order,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pearson =</span> pearson_corr_satisfaction,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Standardized_Coefficients =</span> standardized_coeffs,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Johnsons_Weights =</span> rel_weights_co,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">RF_Gini =</span> importance_values_named</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>importance_data <span class="sc">%&gt;%</span> </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 13%">
+<col style="width: 30%">
+<col style="width: 20%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Variables</th>
+<th style="text-align: right;">Pearson</th>
+<th style="text-align: right;">Standardized_Coefficients</th>
+<th style="text-align: right;">Johnsons_Weights</th>
+<th style="text-align: right;">RF_Gini</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">brand</td>
+<td style="text-align: left;">brand</td>
+<td style="text-align: right;">-0.0492960</td>
+<td style="text-align: right;">0.0121663</td>
+<td style="text-align: right;">0.0034234</td>
+<td style="text-align: right;">0.1883603</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">build</td>
+<td style="text-align: left;">build</td>
+<td style="text-align: right;">0.1918957</td>
+<td style="text-align: right;">0.0225682</td>
+<td style="text-align: right;">0.0716307</td>
+<td style="text-align: right;">0.0517836</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">differs</td>
+<td style="text-align: left;">differs</td>
+<td style="text-align: right;">0.1848009</td>
+<td style="text-align: right;">0.0332636</td>
+<td style="text-align: right;">0.0726952</td>
+<td style="text-align: right;">0.0467553</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">easy</td>
+<td style="text-align: left;">easy</td>
+<td style="text-align: right;">0.2129847</td>
+<td style="text-align: right;">0.0265045</td>
+<td style="text-align: right;">0.0926061</td>
+<td style="text-align: right;">0.0499370</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">appealing</td>
+<td style="text-align: left;">appealing</td>
+<td style="text-align: right;">0.2079965</td>
+<td style="text-align: right;">0.0411111</td>
+<td style="text-align: right;">0.0913638</td>
+<td style="text-align: right;">0.0490140</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: right;">0.1945615</td>
+<td style="text-align: right;">0.0070932</td>
+<td style="text-align: right;">0.0682022</td>
+<td style="text-align: right;">0.0508582</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">popular</td>
+<td style="text-align: left;">popular</td>
+<td style="text-align: right;">0.1714253</td>
+<td style="text-align: right;">0.0203515</td>
+<td style="text-align: right;">0.0562166</td>
+<td style="text-align: right;">0.0574890</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">service</td>
+<td style="text-align: left;">service</td>
+<td style="text-align: right;">0.2510982</td>
+<td style="text-align: right;">0.1028868</td>
+<td style="text-align: right;">0.1834896</td>
+<td style="text-align: right;">0.0464526</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">impact</td>
+<td style="text-align: left;">impact</td>
+<td style="text-align: right;">0.2545386</td>
+<td style="text-align: right;">0.1516054</td>
+<td style="text-align: right;">0.2362281</td>
+<td style="text-align: right;">0.0451533</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize the scores (convert Pearson to absolute values for normalization)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>importance_data_normalized <span class="ot">&lt;-</span> importance_data <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pearson =</span> <span class="fu">abs</span>(Pearson),</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pearson =</span> Pearson <span class="sc">/</span> <span class="fu">sum</span>(Pearson) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Standardized_Coefficients =</span> Standardized_Coefficients <span class="sc">/</span> <span class="fu">sum</span>(Standardized_Coefficients) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Johnsons_Weights =</span> Johnsons_Weights <span class="sc">/</span> <span class="fu">sum</span>(Johnsons_Weights) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">RF_Gini =</span> RF_Gini <span class="sc">/</span> <span class="fu">sum</span>(RF_Gini) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>importance_data_normalized <span class="sc">%&gt;%</span> </span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 31%">
+<col style="width: 20%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Variables</th>
+<th style="text-align: right;">Pearson</th>
+<th style="text-align: right;">Standardized_Coefficients</th>
+<th style="text-align: right;">Johnsons_Weights</th>
+<th style="text-align: right;">RF_Gini</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">brand</td>
+<td style="text-align: left;">brand</td>
+<td style="text-align: right;">2.868387</td>
+<td style="text-align: right;">2.913735</td>
+<td style="text-align: right;">0.3908589</td>
+<td style="text-align: right;">32.154188</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">build</td>
+<td style="text-align: left;">build</td>
+<td style="text-align: right;">11.165835</td>
+<td style="text-align: right;">5.404900</td>
+<td style="text-align: right;">8.1783704</td>
+<td style="text-align: right;">8.839749</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">differs</td>
+<td style="text-align: left;">differs</td>
+<td style="text-align: right;">10.753008</td>
+<td style="text-align: right;">7.966363</td>
+<td style="text-align: right;">8.2999088</td>
+<td style="text-align: right;">7.981399</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">easy</td>
+<td style="text-align: left;">easy</td>
+<td style="text-align: right;">12.392937</td>
+<td style="text-align: right;">6.347611</td>
+<td style="text-align: right;">10.5732147</td>
+<td style="text-align: right;">8.524539</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">appealing</td>
+<td style="text-align: left;">appealing</td>
+<td style="text-align: right;">12.102690</td>
+<td style="text-align: right;">9.845785</td>
+<td style="text-align: right;">10.4313755</td>
+<td style="text-align: right;">8.366976</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: right;">11.320944</td>
+<td style="text-align: right;">1.698773</td>
+<td style="text-align: right;">7.7869260</td>
+<td style="text-align: right;">8.681787</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">popular</td>
+<td style="text-align: left;">popular</td>
+<td style="text-align: right;">9.974720</td>
+<td style="text-align: right;">4.874030</td>
+<td style="text-align: right;">6.4184780</td>
+<td style="text-align: right;">9.813707</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">service</td>
+<td style="text-align: left;">service</td>
+<td style="text-align: right;">14.610649</td>
+<td style="text-align: right;">24.640546</td>
+<td style="text-align: right;">20.9497480</td>
+<td style="text-align: right;">7.929723</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">impact</td>
+<td style="text-align: left;">impact</td>
+<td style="text-align: right;">14.810830</td>
+<td style="text-align: right;">36.308257</td>
+<td style="text-align: right;">26.9711198</td>
+<td style="text-align: right;">7.707931</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the composite scores</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>importance_data_normalized <span class="ot">&lt;-</span> importance_data_normalized <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Composite_Score =</span> <span class="fu">mean</span>(<span class="fu">c</span>(Pearson, Standardized_Coefficients, Johnsons_Weights, RF_Gini)))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>importance_data_normalized <span class="sc">%&gt;%</span> </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 29%">
+<col style="width: 19%">
+<col style="width: 11%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variables</th>
+<th style="text-align: right;">Pearson</th>
+<th style="text-align: right;">Standardized_Coefficients</th>
+<th style="text-align: right;">Johnsons_Weights</th>
+<th style="text-align: right;">RF_Gini</th>
+<th style="text-align: right;">Composite_Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">brand</td>
+<td style="text-align: right;">2.868387</td>
+<td style="text-align: right;">2.913735</td>
+<td style="text-align: right;">0.3908589</td>
+<td style="text-align: right;">32.154188</td>
+<td style="text-align: right;">9.581792</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">build</td>
+<td style="text-align: right;">11.165835</td>
+<td style="text-align: right;">5.404900</td>
+<td style="text-align: right;">8.1783704</td>
+<td style="text-align: right;">8.839749</td>
+<td style="text-align: right;">8.397214</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">differs</td>
+<td style="text-align: right;">10.753008</td>
+<td style="text-align: right;">7.966363</td>
+<td style="text-align: right;">8.2999088</td>
+<td style="text-align: right;">7.981399</td>
+<td style="text-align: right;">8.750170</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">easy</td>
+<td style="text-align: right;">12.392937</td>
+<td style="text-align: right;">6.347611</td>
+<td style="text-align: right;">10.5732147</td>
+<td style="text-align: right;">8.524539</td>
+<td style="text-align: right;">9.459575</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">appealing</td>
+<td style="text-align: right;">12.102690</td>
+<td style="text-align: right;">9.845785</td>
+<td style="text-align: right;">10.4313755</td>
+<td style="text-align: right;">8.366976</td>
+<td style="text-align: right;">10.186707</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: right;">11.320944</td>
+<td style="text-align: right;">1.698773</td>
+<td style="text-align: right;">7.7869260</td>
+<td style="text-align: right;">8.681787</td>
+<td style="text-align: right;">7.372108</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">popular</td>
+<td style="text-align: right;">9.974720</td>
+<td style="text-align: right;">4.874030</td>
+<td style="text-align: right;">6.4184780</td>
+<td style="text-align: right;">9.813707</td>
+<td style="text-align: right;">7.770234</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">service</td>
+<td style="text-align: right;">14.610649</td>
+<td style="text-align: right;">24.640546</td>
+<td style="text-align: right;">20.9497480</td>
+<td style="text-align: right;">7.929723</td>
+<td style="text-align: right;">17.032666</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">impact</td>
+<td style="text-align: right;">14.810830</td>
+<td style="text-align: right;">36.308257</td>
+<td style="text-align: right;">26.9711198</td>
+<td style="text-align: right;">7.707931</td>
+<td style="text-align: right;">21.449535</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rank the variables based on composite scores</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>importance_data_ranked <span class="ot">&lt;-</span> importance_data_normalized <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(Composite_Score)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Variables, Composite_Score) </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>importance_data_ranked <span class="sc">%&gt;%</span> </span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variables</th>
+<th style="text-align: right;">Composite_Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">impact</td>
+<td style="text-align: right;">21.449535</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">service</td>
+<td style="text-align: right;">17.032666</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">appealing</td>
+<td style="text-align: right;">10.186707</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">brand</td>
+<td style="text-align: right;">9.581792</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">easy</td>
+<td style="text-align: right;">9.459575</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">differs</td>
+<td style="text-align: right;">8.750170</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">build</td>
+<td style="text-align: right;">8.397214</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">popular</td>
+<td style="text-align: right;">7.770234</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">rewarding</td>
+<td style="text-align: right;">7.372108</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
 </section>
 </section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>From this variable analysis, it is clear that certain features have a more substantial impact on customer satisfaction than others.</p>
+<ul>
+<li><p>Focus on Impact and Service: The features “Makes a difference in my life” and “Provides outstanding customer service” are the most influential drivers of customer satisfaction. Efforts to improve these areas will likely yield the most significant improvements in customer satisfaction.</p></li>
+<li><p>Enhance Appeal and Usability: Features related to appealing benefits and ease of use are also critical. Ensuring that the payment card offers attractive rewards and is user-friendly can significantly enhance customer satisfaction.</p></li>
+<li><p>Brand Trust: Trust in the brand is important but not the most critical factor. Building a trustworthy brand should still be a priority, but not at the expense of improving impact, service, and usability.</p></li>
+<li><p>Differentiation and Credit Building: Emphasizing unique features that differentiate the card from others and highlighting benefits related to building credit can also positively influence customer satisfaction.</p></li>
+<li><p>Moderate Importance of Popularity and Rewards for Usage: While popularity and rewards for responsible usage are important, they are not as influential as other factors. These should be considered but may not require as much focus as impact, service, and appeal.</p></li>
+</ul>
 </section>
 
 </main>

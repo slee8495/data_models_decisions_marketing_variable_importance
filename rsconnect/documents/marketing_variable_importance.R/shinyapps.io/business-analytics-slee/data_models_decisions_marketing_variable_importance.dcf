@@ -5,7 +5,7 @@ account: business-analytics-slee
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12062590
-bundleId: 8654910
+bundleId: 8668469
 url: https://business-analytics-slee.shinyapps.io/data_models_decisions_marketing_variable_importance/
 version: 1
 asMultiple: FALSE
